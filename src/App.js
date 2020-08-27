@@ -4,7 +4,6 @@ import axios from 'axios';
 import Main from './components/Main';
 import { initialState, reducer } from './context/userContext';
 import { languageReducer, languageState } from './context/languageContext';
-import { SettingsInputSvideoRounded } from '@material-ui/icons';
 
 
 
@@ -22,7 +21,10 @@ function App() {
     const fetchUser = async () => {
       await axios.get(`${process.env.REACT_APP_API_URL}/user/validate`, { withCredentials: true })
         .then(response => setUser(response.data).then(setLoading(false)))
-        .catch(() => console.log('no sessions available'));
+        .catch(() => {
+          console.log('no sessions available');
+          setLoading(false)
+        });
     }
     fetchUser();
   }, []);

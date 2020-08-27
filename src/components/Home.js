@@ -1,10 +1,10 @@
 import React from 'react'
-import Navbar from './Navbar'
+import MyDrawer from './MyDrawer'
 
 function Home() {
     return (
         <div>
-            <Navbar />
+            <MyDrawer />
         </div>
     )
 }
