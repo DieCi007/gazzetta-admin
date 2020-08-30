@@ -1,13 +1,16 @@
 import React, { useContext, useState } from 'react';
-import { Typography, makeStyles, Tabs, Tab, Paper, Button, Chip } from '@material-ui/core';
+import {
+    Typography, Snackbar, makeStyles, Tabs, Tab, Paper, Button,
+    Chip, FormControlLabel, Checkbox, InputLabel, SnackbarContent
+} from '@material-ui/core';
 import { newArticleStrings } from '../constants/newArticleStrings';
 import LocalizedStrings from 'react-localization';
 import PropTypes from 'prop-types';
 import { LangContext } from '../App';
-import { Formik, Form } from 'formik';
-import * as Yup from 'yup';
+import { Formik, Form, FieldArray, Field, ErrorMessage } from 'formik';
 import MaterialInput from './MaterialInput';
 import { tagStrings, tagLangs } from '../constants/tagStrings';
+import { valSchema, initialValues, postArticle } from '../utils/newArticleUtils';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -60,35 +63,35 @@ function a11yProps(index) {
         'aria-controls': `tabpanel-${index}`,
     };
 }
-
-
-
 function NewArticle() {
+    /**State and context */
     const langContext = useContext(LangContext);
     const classes = useStyles();
     const [tab, setTab] = useState(0);
-    const [tags, setTags] = useState(tagStrings);
-    const [selectedTags, setSelectedTags] = useState([]);
+    const [availableTags, setavailableTags] = useState(tagStrings);
+    const [snack, setSnack] = useState({ open: false, message: '', error: false });
+    const [selectedFiles, setSelectedFiles] = useState(0);
+    const [media, setMedia] = useState([]);
     strings.setLanguage(langContext.lang);
     tagsTranslated.setLanguage(langContext.lang);
+    const validationSchema = valSchema(strings);
 
+    /**Tab properties*/
     function TabPanel(props) {
         const { children, value, index, ...other } = props;
-        return (
-            <div
-                className={classes.tabPanel}
-                role='tabpanel'
-                hidden={value !== index}
-                id={`tabpanel-${index}`}
-                aria-labelledby={`tab-${index}`}
-                {...other} >
-                {value === index && (
-                    <div style={{ width: '100%', paddingTop: '10px' }}>
-                        {children}
-                    </div>
-                )}
-            </div>
-        )
+        return (<div
+            className={classes.tabPanel}
+            role='tabpanel'
+            hidden={value !== index}
+            id={`tabpanel-${index}`}
+            aria-labelledby={`tab-${index}`}
+            {...other} >
+            {value === index && (
+                <div style={{ width: '100%', paddingTop: '10px' }}>
+                    {children}
+                </div>
+            )}
+        </div>)
     }
 
     TabPanel.propTypes = {
@@ -97,61 +100,49 @@ function NewArticle() {
         value: PropTypes.any.isRequired,
     };
 
-    const initialValues = {
-        article: {
-            al: {
-                title: '',
-                body: ''
-            },
-            en: {
-                title: '',
-                body: ''
-            },
-            it: {
-                title: '',
-                body: ''
-            },
+    /**Event handling*/
+    const onSubmit = async (values, props) => {
+        const response = await postArticle(values, media);
+        if (response) {
+            setSnack({ open: true, error: false, message: strings.success });
+            props.resetForm();
+            setSelectedFiles(0);
+            setavailableTags(tagStrings);
+        } else {
+            setSnack({ open: true, error: true, message: strings.err })
         }
-    }
-
-    const validationSchema = Yup.object().shape({
-        article: Yup.object().shape({
-            al: Yup.object().shape({
-                title: Yup.string().required(strings.required),
-                body: Yup.string().required(strings.required)
-            }),
-            en: Yup.object().shape({
-                title: Yup.string().required(strings.required),
-                body: Yup.string().required(strings.required)
-            }),
-            it: Yup.object().shape({
-                title: Yup.string().required(strings.required),
-                body: Yup.string().required(strings.required)
-            })
-        })
-    })
-
-    const onSubmit = values => {
-        console.log(values);
+        props.setSubmitting(false);
     }
 
     const changeTab = (event, newValue) => {
         setTab(newValue);
     };
 
-    const addTag = tag => {
-        if (selectedTags.length < 3) {
-            setTags(tags.filter(s => s !== tag));
-            setSelectedTags(old => [...old, tag]);
+    const pushTag = (push, tag) => {
+        push(tag);
+        setavailableTags(availableTags.filter(s => s !== tag));
+    }
+    const removeTag = (remove, index, tag) => {
+        remove(index);
+        setavailableTags(old => [...old, tag]);
+    }
+    const addMedia = e => {
+        let files = e.target.files;
+        if (files) setSelectedFiles(files.length)
+        let fileArray = [];
+        for (let i = 0; i < files.length; i++) {
+            fileArray.push(files[i]);
         }
+        setMedia(() => fileArray);
     }
 
-    const removeTag = tag => {
-        setSelectedTags(selectedTags.filter(s => s !== tag));
-        setTags(old => [...old, tag]);
+    const closeSnack = () => {
+        setSnack({
+            open: false,
+            message: '',
+            error: false
+        })
     }
-
-
     return (
         <div className={classes.root}>
             <Typography variant='h6' >
@@ -163,13 +154,8 @@ function NewArticle() {
                     formik => {
                         return <Form className={classes.form}>
                             <Paper>
-                                <Tabs
-                                    value={tab}
-                                    onChange={changeTab}
-                                    indicatorColor="primary"
-                                    textColor="primary"
-                                    variant="fullWidth"
-                                    aria-label="tabs" >
+                                <Tabs value={tab} onChange={changeTab} indicatorColor="primary"
+                                    textColor="primary" variant="fullWidth" aria-label="tabs" >
                                     <Tab label={strings.albanian} {...a11yProps(0)} />
                                     <Tab label={strings.english} {...a11yProps(1)} />
                                     <Tab label={strings.italian} {...a11yProps(2)} />
@@ -187,38 +173,64 @@ function NewArticle() {
                                 <MaterialInput label={strings.title} name='article.it.title' />
                                 <MaterialInput multi={true} label={strings.body} name='article.it.body' />
                             </TabPanel>
-                            <div className={classes.tags}>
-                                <div className={classes.chipContainer} style={{ backgroundColor: '#ff000010' }}>
-                                    <Typography style={{ width: '100%' }} align='center' variant='subtitle1' >{strings.tagAvailable}</Typography>
-                                    {
-                                        tags.map(tag => {
-                                            return <Chip label={tagsTranslated[tag]} key={tag}
-                                                clickable onClick={() => addTag(tag)} />
-                                        })
-                                    }
-                                </div>
-                                <div className={classes.chipContainer} style={{ backgroundColor: '#00ff5110' }}>
-                                    <Typography style={{ width: '100%' }} align='center' variant='subtitle1' >{strings.tagChoosen}</Typography>
-                                    {
-                                        selectedTags.map(tag => {
-                                            return <Chip label={tagsTranslated[tag]} key={tag}
-                                                clickable color='primary' onDelete={() => removeTag(tag)} />
-                                        })
-                                    }
-                                </div>
-                            </div>
+                            <FieldArray name='tags'>
+                                {fieldArrayProps => {
+                                    const { push, remove, form } = fieldArrayProps;
+                                    const { values } = form;
+                                    const { tags } = values;
+                                    return (<div className={classes.tags}>
+                                        <div className={classes.chipContainer} style={{ backgroundColor: '#ff000010' }}>
+                                            <Typography style={{ width: '100%' }} align='center' variant='subtitle1' >{strings.tagAvailable}</Typography>
+                                            {availableTags.map(tag => {
+                                                return <Chip label={tagsTranslated[tag]} key={tag}
+                                                    clickable onClick={() => pushTag(push, tag)} />
+                                            })}
+                                        </div>
+                                        <div className={classes.chipContainer} style={{ backgroundColor: '#00ff5110' }}>
+                                            <Typography style={{ width: '100%' }} align='center' variant='subtitle1' >{strings.tagChoosen}</Typography>
+                                            {tags.map((tag, index) => {
+                                                return <Field name={`tags[${index}]`} key={tag}>
+                                                    {props =>
+                                                        <Chip {...props} label={tagsTranslated[tag]}
+                                                            clickable color='primary' onDelete={() => removeTag(remove, index, tag)} />}
+                                                </Field>
+                                            })}
+                                            <Typography style={{ width: '100%', color: 'red' }} align='center' variant='caption' ><ErrorMessage name='tags' /></Typography>
+                                        </div>
+                                    </div>)
+                                }}
+                            </FieldArray>
+                            <Field name='published'>
+                                {props => <FormControlLabel control={
+                                    <Checkbox onChange={() => formik.setFieldValue(props.field.name, !props.field.value)} />} label={strings.noPublish} />}
+                            </Field>
+                            <Field name='mainPage'>
+                                {props => <FormControlLabel control={
+                                    <Checkbox onChange={() => formik.setFieldValue(props.field.name, !props.field.value)} />} label={strings.mainPage} />}
+                            </Field>
+                            <input
+                                accept="image/*" hidden
+                                id="newArticleInputMedia"
+                                multiple onChange={e => addMedia(e)}
+                                type="file"
+                            />
+                            <InputLabel htmlFor="newArticleInputMedia">
+                                <Button variant='contained' component="span" className={classes.button}> {strings.addMedia}  </Button>
+                            </InputLabel>
+                            <span>{strings.filesSelected} {selectedFiles}</span>
                             <div>
-                                <br />
-                                <Button variant='contained' color='secondary' type='submit' >{strings.publish}</Button>
+                                <br /><br />
+                                <Button disabled={formik.isSubmitting} variant='contained' color='secondary' type='submit' >{strings.publish}</Button>
                             </div>
                         </Form>
                     }
                 }
             </Formik>
-
-
+            <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                open={snack.open} autoHideDuration={3000} onClose={closeSnack} >
+                <SnackbarContent message={snack.message} style={{ backgroundColor: `${snack.error ? 'red' : 'green'}` }} />
+            </Snackbar>
         </div>
     )
 }
-
 export default NewArticle

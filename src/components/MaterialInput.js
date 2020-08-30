@@ -11,7 +11,7 @@ function MaterialInput(props) {
             <Field name={name}>
                 {
                     ({ field, form }) => {
-                        return <TextField style={{ paddingTop: '1vh' }} multiline={multi}
+                        return <TextField style={{ marginTop: '1vh' }} multiline={multi}
                             rows={multi && 10} variant='outlined' fullWidth
                             error={getIn(form.errors, name) && getIn(form.touched, name)}
                             label={label} id={name} {...rest} {...field}
