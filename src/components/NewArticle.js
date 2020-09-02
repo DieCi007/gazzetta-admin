@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import {
     Typography, Snackbar, makeStyles, Tabs, Tab, Paper, Button,
-    Chip, FormControlLabel, Checkbox, InputLabel, SnackbarContent
+    Chip, FormControlLabel, Checkbox, InputLabel, SnackbarContent, Badge
 } from '@material-ui/core';
 import { newArticleStrings } from '../constants/newArticleStrings';
 import LocalizedStrings from 'react-localization';
@@ -143,6 +143,12 @@ function NewArticle() {
             error: false
         })
     }
+    const handleBadge = (form, a, b) => {
+        if (form.getFieldMeta(a).touched && form.getFieldMeta(a).error) return '!';
+        else if (form.getFieldMeta(b).touched && form.getFieldMeta(b).error) return '!';
+        else return 0;
+    }
+
     return (
         <div className={classes.root}>
             <Typography variant='h6' >
@@ -156,9 +162,15 @@ function NewArticle() {
                             <Paper>
                                 <Tabs value={tab} onChange={changeTab} indicatorColor="primary"
                                     textColor="primary" variant="fullWidth" aria-label="tabs" >
-                                    <Tab label={strings.albanian} {...a11yProps(0)} />
-                                    <Tab label={strings.english} {...a11yProps(1)} />
-                                    <Tab label={strings.italian} {...a11yProps(2)} />
+                                    <Tab label={<Badge badgeContent={handleBadge(formik, 'article.al.title', 'article.al.body')} color='error'>
+                                        <Typography>{strings.albanian}</Typography>
+                                    </Badge>} {...a11yProps(0)} />
+                                    <Tab label={<Badge badgeContent={handleBadge(formik, 'article.en.title', 'article.en.body')} color='error'>
+                                        <Typography>{strings.english}</Typography>
+                                    </Badge>} {...a11yProps(1)} />
+                                    <Tab label={<Badge badgeContent={handleBadge(formik, 'article.it.title', 'article.it.body')} color='error'>
+                                        <Typography>{strings.italian}</Typography>
+                                    </Badge>} {...a11yProps(2)} />
                                 </Tabs>
                             </Paper>
                             <TabPanel value={tab} index={0}>

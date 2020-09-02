@@ -21,6 +21,8 @@ import ListAlt from '@material-ui/icons/ListAlt';
 import AddBox from '@material-ui/icons/AddBox';
 import NavbarItems from './NavbarItems';
 import NewArticle from './NewArticle';
+import { BrowserRouter as Router, Route, Redirect, Link } from 'react-router-dom';
+import MyArticles from './MyArticles';
 
 const drawerWidth = 240;
 
@@ -104,62 +106,66 @@ export default function MyDrawer() {
 
     return (
         <div className={classes.root}>
-            <CssBaseline />
-            <AppBar
-                position="fixed"
-                className={clsx(classes.appBar, {
-                    [classes.appBarShift]: open,
-                })}
-            >
-                <Toolbar style={{ display: 'flex' }}>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        onClick={handleDrawerOpen}
-                        edge="start"
-                        className={clsx(classes.menuButton, {
-                            [classes.hide]: open,
-                        })}
-                    >
-                        <MenuIcon />
-                    </IconButton>
-                    <NavbarItems />
-                </Toolbar>
-            </AppBar>
-            <Drawer
-                variant="permanent"
-                className={clsx(classes.drawer, {
-                    [classes.drawerOpen]: open,
-                    [classes.drawerClose]: !open,
-                })}
-                classes={{
-                    paper: clsx({
+            <Router>
+                <CssBaseline />
+                <AppBar
+                    position="fixed"
+                    className={clsx(classes.appBar, {
+                        [classes.appBarShift]: open,
+                    })}
+                >
+                    <Toolbar style={{ display: 'flex' }}>
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            onClick={handleDrawerOpen}
+                            edge="start"
+                            className={clsx(classes.menuButton, {
+                                [classes.hide]: open,
+                            })}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                        <NavbarItems />
+                    </Toolbar>
+                </AppBar>
+                <Drawer
+                    variant="permanent"
+                    className={clsx(classes.drawer, {
                         [classes.drawerOpen]: open,
                         [classes.drawerClose]: !open,
-                    }),
-                }}
-            >
-                <div className={classes.toolbar}>
-                    <IconButton onClick={handleDrawerClose}>
-                        {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-                    </IconButton>
-                </div>
-                <Divider />
-                <List>
-                    <ListItem button >
-                        <ListItemIcon><ListAlt /></ListItemIcon>
-                        <ListItemText primary={strings.myArticles} />
-                    </ListItem>
-                    <ListItem button >
-                        <ListItemIcon><AddBox /></ListItemIcon>
-                        <ListItemText primary={strings.newArticle} />
-                    </ListItem>
-                </List>
-            </Drawer>
-            <main className={classes.content}>
-                <div className={classes.toolbar} />
-                <NewArticle />
-            </main>
+                    })}
+                    classes={{
+                        paper: clsx({
+                            [classes.drawerOpen]: open,
+                            [classes.drawerClose]: !open,
+                        }),
+                    }}
+                >
+                    <div className={classes.toolbar}>
+                        <IconButton onClick={handleDrawerClose}>
+                            {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+                        </IconButton>
+                    </div>
+                    <Divider />
+                    <List>
+                        <ListItem button component={Link} to='home' >
+                            <ListItemIcon><ListAlt /></ListItemIcon>
+                            <ListItemText primary={strings.myArticles} />
+                        </ListItem>
+                        <ListItem button component={Link} to='new' >
+                            <ListItemIcon><AddBox /></ListItemIcon>
+                            <ListItemText primary={strings.newArticle} />
+                        </ListItem>
+                    </List>
+                </Drawer>
+                <main className={classes.content}>
+                    <div className={classes.toolbar} />
+                    <Route path='/home' exact component={MyArticles} />
+                    <Route path='/new' exact component={NewArticle} />
+                    <Redirect to='/home' />
+                </main>
+            </Router>
         </div>
     );
 }

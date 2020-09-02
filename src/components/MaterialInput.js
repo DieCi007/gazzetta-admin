@@ -4,11 +4,10 @@ import { TextField } from '@material-ui/core';
 
 
 function MaterialInput(props) {
-    const { label, name, multi, ...rest } = props;
-
+    const { label, name, multi, handleError, ...rest } = props;
     return (
         <>
-            <Field name={name}>
+            <Field name={name} >
                 {
                     ({ field, form }) => {
                         return <TextField style={{ marginTop: '1vh' }} multiline={multi}
