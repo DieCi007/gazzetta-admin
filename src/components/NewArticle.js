@@ -65,6 +65,8 @@ function a11yProps(index) {
 }
 function NewArticle() {
     /**State and context */
+    const [checkPublished, setCheckPublished] = useState(false);
+    const [checkMainPage, setCheckMainPage] = useState(false);
     const langContext = useContext(LangContext);
     const classes = useStyles();
     const [tab, setTab] = useState(0);
@@ -112,6 +114,8 @@ function NewArticle() {
             setSnack({ open: true, error: true, message: strings.err })
         }
         props.setSubmitting(false);
+        setCheckPublished(false);
+        setCheckMainPage(false);
     }
 
     const changeTab = (event, newValue) => {
@@ -214,11 +218,17 @@ function NewArticle() {
                             </FieldArray>
                             <Field name='published'>
                                 {props => <FormControlLabel control={
-                                    <Checkbox onChange={() => formik.setFieldValue(props.field.name, !props.field.value)} />} label={strings.noPublish} />}
+                                    <Checkbox checked={checkPublished} onChange={() => {
+                                        formik.setFieldValue(props.field.name, !props.field.value);
+                                        setCheckPublished(old => !old);
+                                    }} />} label={strings.noPublish} />}
                             </Field>
                             <Field name='mainPage'>
                                 {props => <FormControlLabel control={
-                                    <Checkbox onChange={() => formik.setFieldValue(props.field.name, !props.field.value)} />} label={strings.mainPage} />}
+                                    <Checkbox checked={checkMainPage} onChange={() => {
+                                        formik.setFieldValue(props.field.name, !props.field.value);
+                                        setCheckMainPage(old => !old);
+                                    }} />} label={strings.mainPage} />}
                             </Field>
                             <input
                                 accept="image/*" hidden

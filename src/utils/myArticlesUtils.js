@@ -39,4 +39,16 @@ const getNotPublished = async (page, limit) => {
 
 }
 
-export { a11yProps, getAllArticles, getNotPublished }
+const deleteArticleDB = async id => {
+    try {
+        const response = await axios.delete(`${process.env.REACT_APP_API_URL}/article/${id}`, { withCredentials: true });
+        return response.data;
+    } catch (error) {
+        console.log(error);
+        return undefined;
+    }
+
+}
+
+
+export { a11yProps, getAllArticles, getNotPublished, deleteArticleDB }

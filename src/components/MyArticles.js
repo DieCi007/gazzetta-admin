@@ -1,14 +1,16 @@
 import React, { useState, useContext, useEffect } from 'react';
 import LocalizedStrings from 'react-localization';
 import {
-    makeStyles, AppBar, Tabs, Tab, Card, CardHeader,
+    makeStyles, AppBar, Tabs, Tab, Card, CardHeader, Snackbar, SnackbarContent,
     CardMedia, Menu, MenuItem, ListItemIcon, Typography, CardActionArea, Button
 } from '@material-ui/core';
 import { myArticlesStrings } from '../constants/myArticlesStrings';
 import { LangContext } from '../App';
-import { a11yProps, getNotPublished, getAllArticles } from '../utils/myArticlesUtils';
+import { a11yProps, getNotPublished, getAllArticles, deleteArticleDB } from '../utils/myArticlesUtils';
 import { Pagination } from '@material-ui/lab'
 import { Create, Delete } from '@material-ui/icons';
+import ConfirmAlert from './ConfirmAlert';
+import { Link } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -33,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
     },
     articles: {
         display: 'flex',
-        flex:'2',
+        flex: '2',
         flexWrap: 'wrap',
         justifyContent: 'space-around'
     },
@@ -50,7 +52,7 @@ const useStyles = makeStyles((theme) => ({
     },
     card: {
         width: 300,
-        height:'min-content',
+        height: 'min-content',
         backgroundColor: '#EEEEEE',
         marginBottom: '1vh',
         [theme.breakpoints.down('sm')]: {
@@ -73,17 +75,18 @@ function MyArticles() {
     const langContext = useContext(LangContext);
     strings.setLanguage(langContext.lang);
     const [tabValue, setTabValue] = useState(0);
+    const [alertOpen, setAlertOpen] = useState(false);
     const [allArticlePage, setAllArticlePage] = useState(1);
     const [notPublishedPage, setNotPublishedPage] = useState(1);
     const [limit, setLimit] = useState(window.innerWidth < 600 ? 6 : 18);
     const [paginatorAnchor, setPaginatorAnchor] = useState(null)
     const [allArticleCount, setAllArticleCount] = useState(1);
+    const [snack, setSnack] = useState({ open: false, message: '', error: false });
     const [notPublishedCount, setNotPublishedCount] = useState(1);
     const [allArticles, setAllArticles] = useState([]);
     const [notPublished, setNotPublished] = useState([]);
     const [anchorEl, setAnchorEl] = useState(null);
     const [selectedArticle, setSelectedArticle] = useState({});
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -111,12 +114,15 @@ function MyArticles() {
         setAnchorEl(e.currentTarget.firstChild);
         setSelectedArticle(article);
     }
-    const modifyArticle = () => {
-        console.log(selectedArticle.article.al.title);
+    const deleteArticle = async () => {
         setAnchorEl(null);
-    }
-    const deleteArticle = () => {
-        setAnchorEl(null);
+        const response = await deleteArticleDB(selectedArticle._id);
+        if (!response) setSnack({ error: true, open: true, message: strings.somethingWentWrong });
+        else {
+            setSnack({ error: false, open: true, message: strings.deleteSuccess });
+            setAllArticles(allArticles.filter(a => a._id !== selectedArticle._id));
+            setNotPublished(notPublished.filter(a => a._id !== selectedArticle._id));
+        }
     }
 
     return (
@@ -145,11 +151,11 @@ function MyArticles() {
                             </CardActionArea>
                             <Menu elevation={1} id={`menu${i}`} anchorEl={anchorEl}
                                 keepMounted open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-                                <MenuItem onClick={modifyArticle} >
+                                <MenuItem component={Link} to={{ pathname: '/edit', state: { article: selectedArticle } }} onClick={() => setAnchorEl(null)} >
                                     <ListItemIcon><Create fontSize='small' /></ListItemIcon>
                                     <Typography variant='inherit'>{strings.modify}</Typography>
                                 </MenuItem>
-                                <MenuItem onClick={deleteArticle}>
+                                <MenuItem onClick={() => setAlertOpen(true)}>
                                     <ListItemIcon style={{ color: 'red' }}><Delete fontSize='small' /></ListItemIcon>
                                     <Typography variant='inherit'>{strings.delete}</Typography>
                                 </MenuItem>
@@ -172,14 +178,24 @@ function MyArticles() {
                         {
                             [6, 18, 36].map(number => {
                                 return (
-                                    <MenuItem key={number} onClick={() => setLimit(number)} >{number}</MenuItem>
+                                    <MenuItem key={number} onClick={() => {
+                                        setLimit(number);
+                                        setAllArticlePage(1);
+                                        setNotPublishedPage(1);
+                                    }} >{number}</MenuItem>
                                 )
                             })
                         }
                     </Menu>
                 </div>
             </div>
-
+            <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                open={snack.open} autoHideDuration={3000} onClose={() => setSnack({ ...snack, open: false })} >
+                <SnackbarContent message={snack.message} style={{ backgroundColor: `${snack.error ? 'red' : 'green'}` }} />
+            </Snackbar>
+            <ConfirmAlert open={alertOpen} onClose={() => setAlertOpen(false)} bold={strings.modify}
+                message0={strings.deleteAlertMessage0} message1={<>{strings.deleteAlertMessage1} <b>{strings.notPublic}</b></>}
+                confirm={() => { deleteArticle(); setAlertOpen(false); }} />
         </div>
     )
 }

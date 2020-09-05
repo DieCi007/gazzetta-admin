@@ -21,8 +21,9 @@ import ListAlt from '@material-ui/icons/ListAlt';
 import AddBox from '@material-ui/icons/AddBox';
 import NavbarItems from './NavbarItems';
 import NewArticle from './NewArticle';
-import { BrowserRouter as Router, Route, Redirect, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Redirect, Link,Switch } from 'react-router-dom';
 import MyArticles from './MyArticles';
+import ModifyArticle from './ModifyArticle';
 
 const drawerWidth = 240;
 
@@ -161,9 +162,12 @@ export default function MyDrawer() {
                 </Drawer>
                 <main className={classes.content}>
                     <div className={classes.toolbar} />
-                    <Route path='/home' exact component={MyArticles} />
-                    <Route path='/new' exact component={NewArticle} />
-                    <Redirect to='/home' />
+                    <Switch>
+                        <Route path='/home' exact component={MyArticles} />
+                        <Route path='/new' exact component={NewArticle} />
+                        <Route path='/edit' exact component={ModifyArticle} />
+                        <Redirect to='/home' />
+                    </Switch>
                 </main>
             </Router>
         </div>
