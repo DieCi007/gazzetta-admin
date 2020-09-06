@@ -6,7 +6,7 @@ import { LangContext } from '../App';
 
 const strings = new LocalizedStrings(confirmPassAlertStrings);
 
-function ConfirmAlert({ open, onClose, confirm, message0, message1, bold }) {
+function ConfirmAlert({ open, onClose, confirm, message }) {
     const langContext = useContext(LangContext);
     strings.setLanguage(langContext.lang);
 
@@ -16,7 +16,7 @@ function ConfirmAlert({ open, onClose, confirm, message0, message1, bold }) {
                 <DialogTitle id='confrimAlert'>{strings.title}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        {message0} <b>{bold}</b> {message1}
+                        {message}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>

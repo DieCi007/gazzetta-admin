@@ -193,8 +193,8 @@ function MyArticles() {
                 open={snack.open} autoHideDuration={3000} onClose={() => setSnack({ ...snack, open: false })} >
                 <SnackbarContent message={snack.message} style={{ backgroundColor: `${snack.error ? 'red' : 'green'}` }} />
             </Snackbar>
-            <ConfirmAlert open={alertOpen} onClose={() => setAlertOpen(false)} bold={strings.modify}
-                message0={strings.deleteAlertMessage0} message1={<>{strings.deleteAlertMessage1} <b>{strings.notPublic}</b></>}
+            <ConfirmAlert open={alertOpen} onClose={() => setAlertOpen(false)}
+                message={<>{strings.deleteAlertMessage0} <b>{strings.modify}</b> {strings.deleteAlertMessage1} <b>{strings.notPublic}</b></>}
                 confirm={() => { deleteArticle(); setAlertOpen(false); }} />
         </div>
     )

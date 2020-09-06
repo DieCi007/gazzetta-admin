@@ -1,12 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { makeStyles, Accordion, AccordionSummary, Typography, AccordionDetails, Card, CardMedia, Fab, CircularProgress, Tooltip } from '@material-ui/core';
+import {
+    makeStyles, Accordion, AccordionSummary, Typography, AccordionDetails, Fab, CircularProgress,
+    Tooltip, FormGroup, FormControlLabel, Checkbox
+} from '@material-ui/core';
 import LocalizedStrings from 'react-localization';
-import { modifyArticlePhotosStrings } from '../constants/modifyArticlePhotosStrings';
+import { modifyArticleStatusStrings } from '../constants/modifyArticleStatusStrings';
 import { LangContext } from '../App';
 import { green } from '@material-ui/core/colors';
 import { ExpandMoreSharp, CheckSharp, SaveSharp } from '@material-ui/icons';
-import { SortableContainer, SortableElement } from 'react-sortable-hoc';
-import arrayMove from 'array-move';
 import axios from 'axios';
 import clsx from 'clsx';
 import Snack from './Snack';
@@ -21,28 +22,6 @@ const useStyles = makeStyles((theme) => ({
     },
     typography: {
         fontWeight: 'bold'
-    },
-    media: {
-        height: 0,
-        paddingTop: '56.25%', // 16:9
-    },
-    card: {
-        width: 400,
-        margin: '0.5vw',
-        [theme.breakpoints.down('md')]: {
-            width: 300
-        },
-        [theme.breakpoints.down('sm')]: {
-            width: 250
-        }
-    },
-    container: {
-        display: 'flex',
-        width: '100%',
-        listStyle: 'none',
-        justifyContent: 'center',
-        flexWrap: 'wrap',
-        padding:'0'
     },
     buttonContainer: {
         width: 'max-content',
@@ -61,12 +40,17 @@ const useStyles = makeStyles((theme) => ({
         top: -6,
         left: -6,
         zIndex: 1,
+    },
+    container: {
+        flexDirection: 'column',
+        alignItems: 'center'
     }
 }));
 
-const strings = new LocalizedStrings(modifyArticlePhotosStrings);
-function ModifyArticlePhotos({ article }) {
-    const [photos, setPhotos] = useState([]);
+const strings = new LocalizedStrings(modifyArticleStatusStrings);
+function ModifyArticleStatus({ article }) {
+    const [published, setPublished] = useState(false);
+    const [mainPage, setMainPage] = useState(false);
     const [open, setOpen] = useState(false);
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -80,17 +64,21 @@ function ModifyArticlePhotos({ article }) {
     });
 
     useEffect(() => {
-        if (article && article.media) setPhotos(article.media)
+        if (article) {
+            setPublished(article.published);
+            setMainPage(article.mainPage);
+        }
     }, [article]);
 
-    const updateMedia = async () => {
+    const updateStatus = async () => {
         setSaving(true);
         try {
-            const response = await axios.put(`${process.env.REACT_APP_API_URL}/article/media/order/${article._id}`, null,
+            const response = await axios.put(`${process.env.REACT_APP_API_URL}/article/status/${article._id}`, null,
                 {
                     withCredentials: true,
                     params: {
-                        media: photos
+                        published: published,
+                        mainPage: mainPage
                     }
                 });
             if (response) {
@@ -104,39 +92,29 @@ function ModifyArticlePhotos({ article }) {
         }
     }
 
-    const SortableItem = SortableElement(({ value }) =>
-        <li>
-            <Card elevation={5} className={classes.card}>
-                <CardMedia className={classes.media} image={value} />
-            </Card>
-        </li>
-    );
-    const SortableList = SortableContainer(({ items }) =>
-        <ul className={classes.container}>
-            {
-                items.map((value, index) => (
-                    <SortableItem key={value} index={index} value={value} />
-                ))
-            }
-        </ul>
-    );
-    const onSortEnd = ({ oldIndex, newIndex }) => {
-        setSuccess(false);
-        setPhotos(old => arrayMove(old, oldIndex, newIndex));
-    }
-    if (article.media)
+
+    if (article)
         return (
             <div >
                 <Accordion expanded={open} onChange={(e, expanded) => setOpen(expanded)} className={classes.root}>
                     <AccordionSummary classes={{ content: classes.title }} expandIcon={<ExpandMoreSharp />} >
                         <Typography className={classes.typography}>{strings.title}</Typography>
                     </AccordionSummary>
-                    <AccordionDetails style={{ flexDirection: 'column' }}>
-                        <SortableList axis='xy' items={photos} onSortEnd={onSortEnd} />
+                    <AccordionDetails className={classes.container}>
+                        <FormGroup row={false}>
+                            <FormControlLabel control={<Checkbox checked={published || false} onChange={(e) => {
+                                setPublished(e.currentTarget.checked);
+                                setSuccess(false);
+                            }} />} label={strings.notPublished} />
+                            <FormControlLabel control={<Checkbox checked={mainPage || false} onChange={(e) => {
+                                setMainPage(e.currentTarget.checked);
+                                setSuccess(false);
+                            }} />} label={strings.mainPage} />
+                        </FormGroup>
                         <div className={classes.buttonContainer}>
                             <Tooltip title={strings.save}>
                                 <Fab disabled={saving} aria-label={strings.save} className={buttonClassname}
-                                    color="primary" onClick={updateMedia} >
+                                    color="primary" onClick={updateStatus} >
                                     {success ? <CheckSharp /> : <SaveSharp />}
                                 </Fab>
                             </Tooltip>
@@ -149,4 +127,4 @@ function ModifyArticlePhotos({ article }) {
         ); else return null;
 }
 
-export default ModifyArticlePhotos
+export default ModifyArticleStatus
