@@ -3,6 +3,7 @@ import { useHistory } from 'react-router-dom';
 import ModifyArticlePhotos from './ModifyArticlePhotos';
 import ModifyArticleStatus from './ModifyArticleStatus';
 import ModifyArticleBody from './ModifyArticleBody';
+import ModifyArticleTags from './ModifyArticleTags';
 
 function ModifyArticle({ location }) {
     const [article, setArticle] = useState({});
@@ -19,11 +20,14 @@ function ModifyArticle({ location }) {
 
     return (
         <div>
+            <br />
             <ModifyArticlePhotos article={article} />
             <br />
             <ModifyArticleStatus article={article} />
             <br />
             <ModifyArticleBody article={article} />
+            <br />
+            <ModifyArticleTags article={article} />
         </div>
     )
 }
