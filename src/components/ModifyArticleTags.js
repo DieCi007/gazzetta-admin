@@ -59,7 +59,8 @@ const useStyles = makeStyles((theme) => ({
     container: {
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center'
+        alignItems: 'center',
+        width:'100%'
     },
     tags: {
         paddingTop: '1vh',
