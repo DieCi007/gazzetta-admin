@@ -11,6 +11,7 @@ import { Formik, Form, FieldArray, Field, ErrorMessage } from 'formik';
 import MaterialInput from './MaterialInput';
 import { tagStrings, tagLangs } from '../constants/tagStrings';
 import { valSchema, initialValues, postArticle } from '../utils/newArticleUtils';
+import * as imageConversion from 'image-conversion';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -135,7 +136,9 @@ function NewArticle() {
         if (files) setSelectedFiles(files.length)
         let fileArray = [];
         for (let i = 0; i < files.length; i++) {
-            fileArray.push(files[i]);
+            imageConversion.compressAccurately(files[i], 300).then(res => {
+                fileArray.push(res);
+            })
         }
         setMedia(() => fileArray);
     }
