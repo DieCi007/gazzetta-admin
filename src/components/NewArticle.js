@@ -136,7 +136,7 @@ function NewArticle() {
         if (files) setSelectedFiles(files.length)
         let fileArray = [];
         for (let i = 0; i < files.length; i++) {
-            imageConversion.compressAccurately(files[i], 300).then(res => {
+            imageConversion.compressAccurately(files[i], 200).then(res => {
                 fileArray.push(res);
             })
         }
